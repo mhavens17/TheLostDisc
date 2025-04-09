@@ -6,7 +6,8 @@ import { setupCollectibles, animateCollectibles } from './collectible.js'; // Im
 import { createTwigs } from './twigs.js';
 import { createStatues } from './statue.js';
 import { setupAudio } from './audio.js';
-import { setupUI } from './ui.js';
+// import { setupUI } from './ui.js'; // Old import
+import { UI, setupGameUI } from './uiManager.js'; // Import from new manager
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -23,11 +24,44 @@ renderer.domElement.style.width = '100vw';
 renderer.domElement.style.height = '100vh';
 
 // Set up UI first to get instructions element
-const { uiContainer, instructions } = setupUI();
+// const { uiContainer, instructions } = setupUI(); // Old setup
+const { instructions } = setupGameUI(); // Use new setup function
 
 // Set up controls with instructions
 const { controls, moveSpeed, keys, velocity } = setupControls(camera, instructions);
 scene.add(controls.getObject());
+
+// Example Terminal Messages
+const terminalMessages = [
+    "SYSTEM SCAN INITIATED...",
+    "Anomaly detected in Sector 7G.",
+    "WARNING: Entity proximity increasing.",
+    "Memory corruption detected.",
+    "\nERROR: UNKNOWN ORIGIN\nSIGNAL LOST...", // Example with newline
+    "Searching for lost signal...",
+    "Atmospheric pressure dropping.",
+    "Is anybody out there?",
+    "SECURITY ALERT: Perimeter breach.",
+    "Running diagnostics..." 
+];
+
+function getRandomTerminalMessage() {
+    const randomIndex = Math.floor(Math.random() * terminalMessages.length);
+    return terminalMessages[randomIndex];
+}
+
+// Function to schedule the next terminal message
+function scheduleNextTerminalMessage() {
+    const minDelay = 10000; // 10 seconds
+    const maxDelay = 15000; // 15 seconds
+    const randomDelay = Math.random() * (maxDelay - minDelay) + minDelay;
+
+    setTimeout(() => {
+        const message = getRandomTerminalMessage();
+        UI.showTerminal(message, 6000); // Show for 6 seconds
+        scheduleNextTerminalMessage(); // Schedule the next one
+    }, randomDelay);
+}
 
 // Declare variables for collectibles
 let checkDiscCollection;
@@ -35,8 +69,8 @@ let checkDiscCollection;
 // Listen for gameStart event
 document.addEventListener('gameStart', () => {
     console.log('Main.js received gameStart event!');
-    // You can add game initialization logic here
-    // For example, start background music, initialize game state, etc.
+    // Start the random terminal messages when the game starts
+    scheduleNextTerminalMessage(); 
 });
 
 // Setup environment (fog, lighting, ground)
@@ -44,10 +78,10 @@ setupEnvironment(scene);
 
 // Setup collectibles - Removed -> Replaced
 // console.log("Setting up collectibles...");
-// const { discs, checkDiscCollection, updateDiscCounter } = setupCollectibles(scene, uiContainer);
+// const { discs, checkDiscCollection, updateDiscCounter } = setupCollectibles(scene, uiContainer); // Old call
 // console.log(`Discs array length: ${discs.length}`);
 // Setup collectibles
-const collectibleData = setupCollectibles(scene, uiContainer);
+const collectibleData = setupCollectibles(scene); // Call setupCollectibles without uiContainer
 checkDiscCollection = collectibleData.checkDiscCollection; // Store the check function
 
 // Create twigs
@@ -99,6 +133,11 @@ function animate() {
         if (checkDiscCollection) {
              checkDiscCollection(controls.getObject().position); // Use player's position
         }
+
+        // Example Usage of UI Manager (add these where needed in your logic)
+        // UI.showText("Something scary happened!", 4000);
+        // UI.showTerminal("System Alert: Anomaly detected.");
+        // UI.showCountdown(10, () => console.log("Countdown finished!"));
     }
     
     // Animate discs - Removed -> Replaced

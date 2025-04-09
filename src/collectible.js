@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { UI } from './uiManager.js';
 
 const DISC_COUNT = 10; // How many discs to spawn
 const DISC_RADIUS = 0.3;
@@ -23,23 +24,20 @@ const discGeometry = new THREE.CylinderGeometry(DISC_RADIUS, DISC_RADIUS, DISC_T
  * Creates and places collectible discs in the scene.
  * Sets up the UI counter.
  * @param {THREE.Scene} scene - The main scene object.
- * @param {HTMLElement} uiContainer - The container element for UI.
  * @returns {object} Object containing the discs array and check/update functions.
  */
-export function setupCollectibles(scene, uiContainer) {
+export function setupCollectibles(scene) {
     collectedCount = 0; // Reset count on setup
 
-    // Create UI counter element
-    discCounterElement = document.createElement('div');
-    discCounterElement.style.position = 'absolute';
-    discCounterElement.style.top = '10px';
-    discCounterElement.style.left = '10px';
-    discCounterElement.style.color = 'white';
-    discCounterElement.style.fontFamily = 'monospace'; // Retro-style font
-    discCounterElement.style.fontSize = '24px';
-    discCounterElement.style.zIndex = '100'; // Ensure it's above the game canvas
-    discCounterElement.textContent = `Discs: ${collectedCount}/${DISC_COUNT}`;
-    uiContainer.appendChild(discCounterElement);
+    // Find the disc counter element created by uiManager.js
+    discCounterElement = document.getElementById('disc-counter');
+    if (!discCounterElement) {
+        console.error("Disc counter element (#disc-counter) not found in the DOM. Make sure setupGameUI runs first.");
+        // Optionally create a fallback or just disable the counter
+    } else {
+        // Update initial text if found
+        updateDiscCounter();
+    }
 
     // Generate disc positions
     const discPositions = [];
@@ -109,7 +107,9 @@ function checkDiscCollection(playerPosition) {
             collectedCount++;
             updateDiscCounter();
             console.log(`Collected disc! Total: ${collectedCount}`);
-            // Optional: Play a sound effect here
+            // Optional: Use UI Manager to show text feedback
+            UI.showText('Disc Acquired!', 2000, 'top-center');
+            // Optional: Play a sound effect
         }
     }
 }
