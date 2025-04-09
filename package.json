@@ -1,0 +1,16 @@
+{
+  "name": "ps1-horror-game",
+  "version": "1.0.0",
+  "description": "A PS1-style horror game using Three.js",
+  "main": "main.js",
+  "scripts": {
+    "start": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+} 
