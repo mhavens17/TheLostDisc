@@ -206,8 +206,7 @@ class UIManager {
         if (!this.merchantUI) {
             const MerchantUI = (await import('./merchant.js')).default;
             this.merchantUI = new MerchantUI();
-            // Show initial merchant UI with default data
-            this.merchantUI.show();
+            // Don't show initial merchant UI anymore - it will be controlled by proximity
         }
     }
 

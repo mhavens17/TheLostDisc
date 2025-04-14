@@ -8,6 +8,7 @@ import { createStatues } from './statue.js';
 import { setupAudio } from './audio.js';
 // import { setupUI } from './ui.js'; // Old import
 import { UI, setupGameUI } from './uiManager.js'; // Import from new manager
+import { MerchantMachine, isNearMachine } from './machine.js';
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -24,12 +25,15 @@ renderer.domElement.style.width = '100vw';
 renderer.domElement.style.height = '100vh';
 
 // Set up UI first to get instructions element
-// const { uiContainer, instructions } = setupUI(); // Old setup
-const { instructions } = setupGameUI(); // Use new setup function
+const { instructions } = setupGameUI();
 
 // Set up controls with instructions
 const { controls, moveSpeed, keys, velocity } = setupControls(camera, instructions);
 scene.add(controls.getObject());
+
+// Create merchant machine early
+let merchantMachine = new MerchantMachine(scene, controls.getObject().position);
+console.log('Created merchant machine at start');
 
 // Example Terminal Messages
 const terminalMessages = [
@@ -99,14 +103,18 @@ setupEnvironment(scene);
 const collectibleData = setupCollectibles(scene); // Call setupCollectibles without uiContainer
 checkDiscCollection = collectibleData.checkDiscCollection; // Store the check function
 
-// Create twigs
-createTwigs(scene);
+// Create twigs with machine position check
+createTwigs(scene, (position) => {
+    return !merchantMachine || !isNearMachine(position, merchantMachine.getPosition());
+});
 
-// Create statues
-const statueCount = 15; // How many statues
-const spawnArea = { minX: -50, maxX: 50, minZ: -50, maxZ: 50 }; // Area to spawn in
-const minStatueDistance = 8; // Minimum distance between statues and from player start
-createStatues(scene, statueCount, spawnArea, minStatueDistance, camera.position.y);
+// Create statues with machine position check
+const statueCount = 15;
+const spawnArea = { minX: -50, maxX: 50, minZ: -50, maxZ: 50 };
+const minStatueDistance = 8;
+createStatues(scene, statueCount, spawnArea, minStatueDistance, camera.position.y, (position) => {
+    return !merchantMachine || !isNearMachine(position, merchantMachine.getPosition());
+});
 
 // Setup audio
 const { listener, ambientSound, audioLoader } = setupAudio(camera);
@@ -124,15 +132,15 @@ window.addEventListener('resize', () => {
 function animate() {
     requestAnimationFrame(animate);
 
-    const time = Date.now() * 0.001; // Get time once per frame
+    const time = Date.now() * 0.001;
 
     if (controls.isLocked) {
         // Movement
         velocity.x = 0;
         velocity.z = 0;
 
-        if (keys.w) velocity.z = moveSpeed; // W moves forward
-        if (keys.s) velocity.z = -moveSpeed; // S moves backward
+        if (keys.w) velocity.z = moveSpeed;
+        if (keys.s) velocity.z = -moveSpeed;
         if (keys.a) velocity.x = -moveSpeed;
         if (keys.d) velocity.x = moveSpeed;
 
@@ -143,29 +151,18 @@ function animate() {
         // Add subtle camera wobble for PS1 effect
         camera.position.y = 1.7 + Math.sin(time * 2) * 0.01;
         
-        // Check for disc collection - Removed -> Replaced
-        // checkDiscCollection(camera.position);
+        // Check for disc collection
         if (checkDiscCollection) {
-             checkDiscCollection(controls.getObject().position); // Use player's position
+            checkDiscCollection(controls.getObject().position);
         }
 
-        // Example Usage of UI Manager (add these where needed in your logic)
-        // UI.showText("Something scary happened!", 4000);
-        // UI.showTerminal("System Alert: Anomaly detected.");
-        // UI.showCountdown(10, () => console.log("Countdown finished!"));
+        // Check player proximity to merchant machine
+        if (merchantMachine) {
+            merchantMachine.checkPlayerProximity(controls.getObject().position);
+        }
     }
     
-    // Animate discs - Removed -> Replaced
-    // const time = Date.now() * 0.001; // Moved time calculation up
-    // if (discs && discs.length > 0) { // Check if discs exists before accessing length
-    //     console.log(`Animating ${discs.length} discs`);
-    // }
-    // for (const disc of discs || []) { // Check if discs exists before iterating
-    //     // Rotate around Y axis instead of Z for better visibility
-    //     disc.rotation.y = time * 2; // Continuous rotation around Y-axis
-    //     disc.position.y = 0.5 + Math.sin(time * 3) * 0.05; // Slight bobbing motion
-    // }
-    animateCollectibles(time); // Animate discs every frame
+    animateCollectibles(time);
 
     renderer.render(scene, camera);
 }

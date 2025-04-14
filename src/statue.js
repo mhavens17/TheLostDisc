@@ -4,6 +4,34 @@ import * as THREE from 'three';
 const STATUE_MATERIAL = new THREE.MeshLambertMaterial({ color: 0xAAAAAA }); // Lighter grey, non-shiny
 
 /**
+ * Helper function to check if a position is too close to existing statues
+ * @param {THREE.Vector3} position - The position to check
+ * @param {Array<THREE.Vector3>} existingStatues - Array of existing statue positions
+ * @param {number} minDistance - Minimum allowed distance between statues
+ * @returns {boolean} True if the position is too close to any existing statue
+ */
+function isTooCloseToOtherStatues(position, existingStatues, minDistance) {
+    // Check distance from origin (player start)
+    const origin = new THREE.Vector3(0, position.y, 0);
+    if (position.distanceTo(origin) < minDistance) {
+        return true; // Too close to player start
+    }
+
+    // Check distance from other statues
+    for (const existingPosition of existingStatues) {
+        const distanceXZ = Math.sqrt(
+            Math.pow(position.x - existingPosition.x, 2) + 
+            Math.pow(position.z - existingPosition.z, 2)
+        );
+        if (distanceXZ < minDistance) {
+            return true; // Too close to another statue
+        }
+    }
+    
+    return false;
+}
+
+/**
  * Creates a simple low-poly humanoid statue mesh and its height info.
  * The mesh's origin (0,0,0) is at the center of the torso.
  * @returns {{mesh: THREE.Group, heightInfo: {torsoHeight: number, legHeight: number}}} The statue group and its dimensions.
@@ -109,65 +137,43 @@ function createSingleStatueMesh() {
  * @param {number} count - The number of statues to create.
  * @param {{minX: number, maxX: number, minZ: number, maxZ: number}} spawnArea - The area where statues can spawn.
  * @param {number} minDistance - The minimum distance between statues and from the origin (0,0,0).
- * @param {number} playerStartY - The player's starting Y position (to avoid spawning statues directly intersecting the player camera).
+ * @param {number} playerHeight - The player's starting Y position (to avoid spawning statues directly intersecting the player camera).
+ * @param {function} validatePosition - A function to validate the position of the statue.
  */
-export function createStatues(scene, count, spawnArea, minDistance, playerStartY = 1.7) {
-    const statuePositions = [];
-    const origin = new THREE.Vector3(0, playerStartY, 0); // Player start position to avoid
+export function createStatues(scene, count, spawnArea, minDistance, playerHeight, validatePosition = null) {
+    const statues = [];
+    let attempts = 0;
+    const maxAttempts = count * 10; // Prevent infinite loops
 
-    for (let i = 0; i < count; i++) {
-        let positionValid = false;
-        let randomPosition;
-        let attempts = 0;
-        const maxAttempts = 50; // Prevent infinite loops
+    while (statues.length < count && attempts < maxAttempts) {
+        attempts++;
+        
+        const x = Math.random() * (spawnArea.maxX - spawnArea.minX) + spawnArea.minX;
+        const z = Math.random() * (spawnArea.maxZ - spawnArea.minZ) + spawnArea.minZ;
+        const position = new THREE.Vector3(x, 0, z);
 
-        while (!positionValid && attempts < maxAttempts) {
-            attempts++;
-            const x = THREE.MathUtils.randFloat(spawnArea.minX, spawnArea.maxX);
-            const z = THREE.MathUtils.randFloat(spawnArea.minZ, spawnArea.maxZ);
-            randomPosition = new THREE.Vector3(x, 0, z); // Base position at y=0
-
-            // Check distance from origin (player start)
-            if (randomPosition.distanceTo(origin) < minDistance) {
-                continue; // Too close to player start, try again
-            }
-
-            // Check distance from other statues
-            let tooCloseToOther = false;
-            for (const pos of statuePositions) {
-                // Check distance in XZ plane only for placement density
-                const distanceXZ = Math.sqrt(Math.pow(randomPosition.x - pos.x, 2) + Math.pow(randomPosition.z - pos.z, 2));
-                if (distanceXZ < minDistance) {
-                    tooCloseToOther = true;
-                    break;
-                }
-            }
-
-            if (!tooCloseToOther) {
-                positionValid = true;
-            }
+        // Skip if too close to other statues or fails position validation
+        if (isTooCloseToOtherStatues(position, statues, minDistance) || 
+            (validatePosition && !validatePosition(position))) {
+            continue;
         }
 
-        if (positionValid) {
-            const statueData = createSingleStatueMesh();
-            const statue = statueData.mesh;
-            const { torsoHeight, legHeight } = statueData.heightInfo;
+        const statueData = createSingleStatueMesh();
+        const statue = statueData.mesh;
+        const { torsoHeight, legHeight } = statueData.heightInfo;
 
-            // Set final position
-            statue.position.copy(randomPosition);
-            // Adjust Y position so the feet are at y=0
-            // The mesh origin is torso center. Feet bottom is at -(torsoHeight/2 + legHeight)
-            statue.position.y = torsoHeight / 2 + legHeight;
+        // Set final position
+        statue.position.copy(position);
+        // Adjust Y position so the feet are at y=0
+        // The mesh origin is torso center. Feet bottom is at -(torsoHeight/2 + legHeight)
+        statue.position.y = torsoHeight / 2 + legHeight;
 
-            // Random rotation around Y axis
-            statue.rotation.y = Math.random() * Math.PI * 2;
+        // Random rotation around Y axis
+        statue.rotation.y = Math.random() * Math.PI * 2;
 
-            scene.add(statue);
-            statuePositions.push(statue.position); // Store the actual placed position (including Y)
-             console.log(`Statue ${i+1} placed at:`, statue.position.x.toFixed(2), statue.position.y.toFixed(2), statue.position.z.toFixed(2));
-        } else {
-            console.warn(`Could not find a valid position for statue ${i + 1} after ${maxAttempts} attempts.`);
-        }
+        scene.add(statue);
+        statues.push(statue.position); // Store the actual placed position (including Y)
+         console.log(`Statue ${statues.length} placed at:`, statue.position.x.toFixed(2), statue.position.y.toFixed(2), statue.position.z.toFixed(2));
     }
-    console.log(`Attempted to create ${count} statues. Successfully placed ${statuePositions.length}.`);
+    console.log(`Attempted to create ${count} statues. Successfully placed ${statues.length}.`);
 } 
