@@ -173,7 +173,7 @@ export function createStatues(scene, count, spawnArea, minDistance, playerHeight
 
         scene.add(statue);
         statues.push(statue.position); // Store the actual placed position (including Y)
-         console.log(`Statue ${statues.length} placed at:`, statue.position.x.toFixed(2), statue.position.y.toFixed(2), statue.position.z.toFixed(2));
+         //console.log(`Statue ${statues.length} placed at:`, statue.position.x.toFixed(2), statue.position.y.toFixed(2), statue.position.z.toFixed(2));
     }
     console.log(`Attempted to create ${count} statues. Successfully placed ${statues.length}.`);
 } 

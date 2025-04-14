@@ -270,8 +270,25 @@ export function setupGameUI(initialInstructionsText = "Click to Start") {
     discCounterElement.textContent = 'Discs: 0/0'; // Initial text
     uiContainer.appendChild(discCounterElement);
 
-    console.log("Initial game UI (instructions, counter placeholder) set up.");
+    // --- Money Counter ---
+    const moneyCounterElement = document.createElement('div');
+    moneyCounterElement.id = 'money-counter';
+    Object.assign(moneyCounterElement.style, {
+        position: 'absolute',
+        top: '40px', // Position it below the disc counter
+        left: '10px',
+        color: 'white',
+        fontFamily: 'monospace',
+        fontSize: '24px',
+        zIndex: '101',
+        pointerEvents: 'none',
+        textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
+    });
+    moneyCounterElement.textContent = 'Assets: $0'; // Initial text
+    uiContainer.appendChild(moneyCounterElement);
+
+    console.log("Initial game UI (instructions, counters) set up.");
 
     // Return elements needed by other modules
-    return { uiContainer, instructions, discCounterElement };
+    return { uiContainer, instructions, discCounterElement, moneyCounterElement };
 } 
