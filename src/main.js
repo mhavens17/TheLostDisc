@@ -70,7 +70,22 @@ let checkDiscCollection;
 document.addEventListener('gameStart', () => {
     console.log('Main.js received gameStart event!');
     // Start the random terminal messages when the game starts
-    scheduleNextTerminalMessage(); 
+    scheduleNextTerminalMessage();
+});
+
+// Listen for all discs collected event
+document.addEventListener('allDiscsCollected', (event) => {
+    console.log("Main.js received allDiscsCollected event!", event.detail);
+    
+    // Show the title text (make it last longer than the countdown)
+    // UI.showText("THE HUNGRY ROAMS FREE", 65000, 'top-center'); // REMOVED - Now part of countdown.html
+
+    // Start the 60-second countdown
+    UI.showCountdown(60, () => {
+        console.log("Countdown finished! The Hungry has arrived?");
+        // Add game over logic or other consequences here
+        UI.showText("YOU FAILED TO ESCAPE", 10000, 'center'); // Example outcome text
+    });
 });
 
 // Setup environment (fog, lighting, ground)

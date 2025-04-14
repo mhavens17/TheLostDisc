@@ -107,8 +107,17 @@ function checkDiscCollection(playerPosition) {
             collectedCount++;
             updateDiscCounter();
             console.log(`Collected disc! Total: ${collectedCount}`);
-            // Optional: Use UI Manager to show text feedback
+            
+            // Show feedback text
             UI.showText('Disc Acquired!', 2000, 'top-center');
+            
+            // Check if all discs are collected
+            if (collectedCount === DISC_COUNT) {
+                console.log("All discs collected! Dispatching event.");
+                const event = new CustomEvent('allDiscsCollected', { detail: { count: collectedCount } });
+                document.dispatchEvent(event);
+            }
+
             // Optional: Play a sound effect
         }
     }
