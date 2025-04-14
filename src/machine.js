@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import MerchantUI from './merchant.js';
+import { UI } from './uiManager.js';  // Import UI manager
 import { discTrader } from './discTrader.js';
 import { playerState } from './player.js';
 
@@ -15,13 +15,29 @@ export class MerchantMachine {
             playerPosition.z + 5
         );
         this.isPlayerInRange = false;
-        this.merchantUI = new MerchantUI();
+        this.merchantUI = null;  // Initialize as null
         this.currentDiscData = null;
         this.lastKnownDiscCount = 0;
         
         this.loadModel();
         this.setupKeyListener();
+        this.initializeMerchantUI();  // Start initialization
         console.log('Merchant machine initialized at position:', this.position);
+    }
+
+    async initializeMerchantUI() {
+        // Wait for UI.merchantUI to be available
+        const checkUI = async () => {
+            if (UI.merchantUI) {
+                this.merchantUI = UI.merchantUI;
+                console.log('MerchantUI successfully initialized');
+            } else {
+                console.log('Waiting for MerchantUI to initialize...');
+                await new Promise(resolve => setTimeout(resolve, 100));
+                await checkUI();
+            }
+        };
+        await checkUI();
     }
 
     setupKeyListener() {
@@ -29,6 +45,12 @@ export class MerchantMachine {
             if (event.key.toLowerCase() === 'c' && discTrader.canTradeDiscs()) {
                 console.log('Trade key pressed while in range');
                 
+                // Check if merchantUI is available
+                if (!this.merchantUI) {
+                    console.log('MerchantUI not yet initialized');
+                    return;
+                }
+
                 // Store the current disc's value before trading
                 const currentValue = this.currentDiscData ? this.currentDiscData.value : null;
                 
@@ -78,13 +100,17 @@ export class MerchantMachine {
             return;
         }
 
+        // Check if merchantUI is available
+        if (!this.merchantUI) {
+            console.log('MerchantUI not yet initialized, skipping UI updates');
+            return;
+        }
+
         const distance = this.position.distanceTo(new THREE.Vector3(
             playerPosition.x,
             this.position.y,
             playerPosition.z
         ));
-
-        //console.log('Distance to machine:', distance, 'Radius:', this.interactionRadius);
 
         const wasInRange = this.isPlayerInRange;
         this.isPlayerInRange = distance <= this.interactionRadius;

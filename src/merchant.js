@@ -1,14 +1,17 @@
 class MerchantUI {
-    constructor() {
+    constructor(uiManager) {
+        if (!uiManager) {
+            throw new Error('UIManager instance must be provided to MerchantUI constructor');
+        }
         this.element = null;
         this.totalChars = 39;
         this.minHyphens = 2;
         this.baseFontSize = 18;
+        this.uiManager = uiManager;
         this.setupStyles();
     }
 
     setupStyles() {
-        // Add custom fonts
         const style = document.createElement('style');
         style.textContent = `
             @font-face {
@@ -57,19 +60,7 @@ class MerchantUI {
                 top: 145px;
                 left: 315px;
                 width: 260px;
-                z-index: 1;
-            }
-
-            .measurement-box {
-                position: absolute;
-                top: 145px;
-                left: 315px;
-                width: 260px;
-                height: 200px;
-                background-color: rgba(0, 255, 0, 0.3);
-                border: 1px solid #00ff00;
-                z-index: 2;
-                pointer-events: none;
+                z-index: 10;
             }
 
             .merchant-content {
@@ -90,6 +81,7 @@ class MerchantUI {
                 text-align: left;
                 font-size: 12px;
                 white-space: nowrap;
+                min-height: 1.2em;
             }
 
             .merchant-value {
@@ -98,6 +90,7 @@ class MerchantUI {
                 font-size: 18px;
                 font-weight: bold;
                 white-space: nowrap;
+                min-height: 1.2em;
             }
 
             .merchant-quote {
@@ -106,12 +99,13 @@ class MerchantUI {
                 margin-top: 15px;
                 font-style: italic;
                 font-size: 14px;
+                min-height: 1.2em;
             }
         `;
         document.head.appendChild(style);
     }
 
-    show(discData = null) {
+    async show(discData = null) {
         if (this.element) {
             this.hide();
         }
@@ -119,13 +113,13 @@ class MerchantUI {
         this.element = document.createElement('div');
         this.element.className = 'merchant-ui';
 
-        // Add background image container
         const background = document.createElement('div');
         background.className = 'merchant-background ' + (discData ? 'has-discs' : 'no-discs');
         this.element.appendChild(background);
 
+        document.body.appendChild(this.element);
+
         if (discData) {
-            // Create content container for disc data
             const contentContainer = document.createElement('div');
             contentContainer.className = 'merchant-content-container';
 
@@ -141,7 +135,8 @@ class MerchantUI {
                 ['Rarity', discData.rarity]
             ];
 
-            fields.forEach(([label, value]) => {
+            // Create all elements first
+            const rowElements = fields.map(([label, value]) => {
                 const rowContainer = document.createElement('div');
                 rowContainer.className = 'merchant-row';
                 
@@ -151,26 +146,18 @@ class MerchantUI {
                 labelElement.className = 'merchant-label';
                 valueElement.className = 'merchant-value';
 
-                // Calculate space needed
                 const labelLength = label.length;
                 const valueLength = value.length;
-                const spacesNeeded = 4; // Total spaces needed
-
-                // Calculate the space available for the value text
-                // Account for the fact that 18px font takes about 1.5x the space of 12px font
-                const valueSpaceNeeded = Math.ceil(valueLength * 1.5); // Each 18px character takes ~1.5x space
+                const spacesNeeded = 4;
+                const valueSpaceNeeded = Math.ceil(valueLength * 1.5);
                 const availableSpace = this.totalChars - labelLength - this.minHyphens - spacesNeeded;
 
-                // If we need to adjust the font size
                 if (valueSpaceNeeded > availableSpace) {
-                    // Calculate how much we need to scale down
                     const scaleFactor = availableSpace / valueSpaceNeeded;
-                    // Scale down from baseFontSize (18px)
                     const newFontSize = Math.max(10, Math.floor(this.baseFontSize * scaleFactor));
                     valueElement.style.fontSize = `${newFontSize}px`;
                 }
 
-                // Calculate hyphens based on the scaled length
                 const effectiveValueLength = valueElement.style.fontSize ? 
                     Math.ceil(valueLength * (parseInt(valueElement.style.fontSize) / 12)) : 
                     Math.ceil(valueLength * 1.5);
@@ -180,28 +167,41 @@ class MerchantUI {
                     this.totalChars - labelLength - effectiveValueLength - spacesNeeded
                 );
 
-                // Format with explicit spaces
-                labelElement.textContent = label + ' ' + '-'.repeat(hyphenCount) + '  ';
-                valueElement.textContent = value;
-
+                const labelText = label + ' ' + '-'.repeat(hyphenCount) + '  ';
                 rowContainer.appendChild(labelElement);
                 rowContainer.appendChild(valueElement);
                 content.appendChild(rowContainer);
+
+                return { labelElement, valueElement, labelText, value };
             });
 
             contentContainer.appendChild(content);
 
+            let quote = null;
             if (discData.quote) {
-                const quote = document.createElement('div');
+                quote = document.createElement('div');
                 quote.className = 'merchant-quote';
-                quote.textContent = discData.quote;
                 contentContainer.appendChild(quote);
             }
 
             this.element.appendChild(contentContainer);
-        }
 
-        document.body.appendChild(this.element);
+            // Start all typing animations simultaneously
+            const typingPromises = rowElements.map(({ labelElement, valueElement, labelText, value }) => {
+                return Promise.all([
+                    this.uiManager.typewriterEffect(labelElement, labelText),
+                    this.uiManager.typewriterEffect(valueElement, value)
+                ]);
+            });
+
+            // Wait for all row animations to complete
+            await Promise.all(typingPromises);
+
+            // Finally, type out the quote if it exists
+            if (quote && discData.quote) {
+                await this.uiManager.typewriterEffect(quote, discData.quote);
+            }
+        }
     }
 
     hide() {

@@ -15,10 +15,34 @@ class UIManager {
         this.terminalTimeout = null;
         this.countdownInterval = null;
         this.countdownElement = null;
+        this.labelTypingSpeed = 1;  // Speed for labels
+        this.contentTypingSpeed = 5;  // Speed for content
         
         // Initialize merchant UI immediately
         this.merchantUI = null;
         this.initializeMerchantUI();
+
+        // Add typewriter styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .typing-text {
+                display: inline-block;
+            }
+            .typing-cursor {
+                display: inline-block;
+                width: 0.6em;
+                height: 1.2em;
+                background-color: rgba(255, 255, 255, 0.8);
+                vertical-align: middle;
+                margin-left: 2px;
+                animation: blink 0.7s infinite;
+            }
+            @keyframes blink {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
 
         console.log("UIManager initialized.");
     }
@@ -205,8 +229,7 @@ class UIManager {
     async initializeMerchantUI() {
         if (!this.merchantUI) {
             const MerchantUI = (await import('./merchant.js')).default;
-            this.merchantUI = new MerchantUI();
-            // Don't show initial merchant UI anymore - it will be controlled by proximity
+            this.merchantUI = new MerchantUI(this); // Pass 'this' as UIManager instance
         }
     }
 
@@ -220,6 +243,55 @@ class UIManager {
         if (this.merchantUI) {
             this.merchantUI.hide();
         }
+    }
+
+    // Add the typewriter utility method
+    async typewriterEffect(element, text) {
+        return new Promise((resolve) => {
+            if (!text) {
+                resolve();
+                return;
+            }
+
+            // Clear existing content
+            element.textContent = '';
+
+            // Create text span and cursor
+            const textSpan = document.createElement('span');
+            textSpan.className = 'typing-text';
+            const cursor = document.createElement('span');
+            cursor.className = 'typing-cursor';
+
+            element.appendChild(textSpan);
+            element.appendChild(cursor);
+
+            let currentText = '';
+            let charIndex = 0;
+
+            // Determine base typing speed based on element class
+            const baseSpeed = element.classList.contains('merchant-label') ? 
+                this.labelTypingSpeed : this.contentTypingSpeed;
+
+            const typeNextChar = () => {
+                if (charIndex < text.length) {
+                    const nextChar = text[charIndex];
+                    currentText += nextChar;
+                    textSpan.textContent = currentText;
+                    charIndex++;
+
+                    // Add random variation to typing speed (±20% of base speed)
+                    const variation = baseSpeed * 0.2;  // 20% variation
+                    const randomSpeed = baseSpeed + (Math.random() * variation * 2 - variation);
+                    
+                    requestAnimationFrame(() => setTimeout(typeNextChar, randomSpeed));
+                } else {
+                    cursor.remove();
+                    resolve();
+                }
+            };
+
+            typeNextChar();
+        });
     }
 }
 
