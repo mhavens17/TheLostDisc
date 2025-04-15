@@ -6,6 +6,8 @@ class PlayerState {
         this._discCount = 0;
         this._money = 0;
         this.position = { x: 0, y: 0, z: 0 };
+        this.forward = { x: 0, y: 0, z: -1 }; // Default forward direction
+        this.monster = null; // Reference to monster instance
         this.updateMoneyDisplay(); // Initialize money display
     }
 
@@ -55,6 +57,34 @@ class PlayerState {
         this.position.x = x;
         this.position.y = y;
         this.position.z = z;
+
+        // Update monster position if active
+        if (this.monster && this.monster.isActive) {
+            this.monster.update(this.position, this.forward);
+            this.checkMonsterVisibility();
+        }
+    }
+
+    updateForwardDirection(x, y, z) {
+        this.forward = { x, y, z };
+    }
+
+    setMonsterReference(monster) {
+        this.monster = monster;
+    }
+
+    spawnMonster() {
+        if (this.monster && !this.monster.isActive) {
+            this.monster.spawn(this.position, this.forward);
+        }
+    }
+
+    checkMonsterVisibility() {
+        if (!this.monster || !this.monster.isActive) return;
+
+        if (this.monster.isPlayerLooking(this.position, this.forward)) {
+            this.monster.triggerJumpscare();
+        }
     }
 
     updateMoneyDisplay() {

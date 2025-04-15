@@ -9,6 +9,8 @@ import { setupAudio } from './audio.js';
 // import { setupUI } from './ui.js'; // Old import
 import { UI, setupGameUI } from './uiManager.js'; // Import from new manager
 import { MerchantMachine, isNearMachine } from './machine.js';
+import { createMonster } from './monster.js';
+import { playerState } from './player.js';
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -128,6 +130,25 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
 });
 
+// Create monster instance after scene setup
+const monster = createMonster(scene);
+playerState.setMonsterReference(monster);
+
+// Add G key to controls
+keys.g = false;
+document.addEventListener('keydown', (event) => {
+    if (event.key.toLowerCase() === 'g') {
+        keys.g = true;
+        console.log('🎮 G key pressed - Attempting to spawn monster...');
+        playerState.spawnMonster();
+    }
+});
+document.addEventListener('keyup', (event) => {
+    if (event.key.toLowerCase() === 'g') {
+        keys.g = false;
+    }
+});
+
 // Animation loop
 function animate() {
     requestAnimationFrame(animate);
@@ -147,6 +168,19 @@ function animate() {
         // Apply movement
         controls.moveRight(velocity.x);
         controls.moveForward(velocity.z);
+
+        // Update player position and forward direction for monster system
+        const playerObject = controls.getObject();
+        playerState.updatePosition(
+            playerObject.position.x,
+            playerObject.position.y,
+            playerObject.position.z
+        );
+        
+        // Get camera's forward direction
+        const forward = new THREE.Vector3();
+        camera.getWorldDirection(forward);
+        playerState.updateForwardDirection(forward.x, forward.y, forward.z);
 
         // Add subtle camera wobble for PS1 effect
         camera.position.y = 1.7 + Math.sin(time * 2) * 0.01;
