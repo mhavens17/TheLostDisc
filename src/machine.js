@@ -18,11 +18,17 @@ export class MerchantMachine {
         this.merchantUI = null;  // Initialize as null
         this.currentDiscData = null;
         this.lastKnownDiscCount = 0;
+        this._hasLoggedLoading = false; // Flag for logging control
         
         this.loadModel();
         this.setupKeyListener();
         this.initializeMerchantUI();  // Start initialization
         console.log('Merchant machine initialized at position:', this.position);
+
+        // Listen for final sequence
+        document.addEventListener('finalSequenceStart', () => {
+            this.remove();
+        });
     }
 
     async initializeMerchantUI() {
@@ -96,9 +102,15 @@ export class MerchantMachine {
 
     checkPlayerProximity(playerPosition) {
         if (!this.machine) {
-            console.log('Machine model not yet loaded, skipping proximity check');
+            if (!this._hasLoggedLoading) {
+                console.log('Machine model not yet loaded, skipping proximity check');
+                this._hasLoggedLoading = true;
+            }
             return;
         }
+
+        // Once machine is loaded, reset the flag for future use if needed
+        this._hasLoggedLoading = false;
 
         // Check if merchantUI is available
         if (!this.merchantUI) {
@@ -151,6 +163,24 @@ export class MerchantMachine {
                 this.merchantUI.hide();
             }
         }
+    }
+
+    remove() {
+        if (this.machine) {
+            this.scene.remove(this.machine);
+            this.machine = null;
+        }
+        if (this.merchantUI) {
+            this.merchantUI.hide();
+            // Remove merchant UI from DOM
+            const merchantElement = document.querySelector('.merchant-ui');
+            if (merchantElement) {
+                merchantElement.remove();
+            }
+        }
+        // Remove event listener
+        document.removeEventListener('keydown', this.keyHandler);
+        console.log('Merchant machine and UI removed from scene');
     }
 }
 

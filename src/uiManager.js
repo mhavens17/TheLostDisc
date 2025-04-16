@@ -128,21 +128,18 @@ class UIManager {
     // --- Countdown ---
     async showCountdown(seconds, onComplete) {
         console.log(`Starting countdown: ${seconds} seconds.`);
-        // Clear existing interval and remove previous element immediately
         if (this.countdownInterval) {
             clearInterval(this.countdownInterval);
             if (this.countdownElement) this.countdownElement.remove();
             this.countdownElement = null;
-            this.countdownInterval = null; // Clear interval ID
+            this.countdownInterval = null;
         }
 
         const htmlContent = await this._loadHTML('countdown.html');
         if (!htmlContent) return;
 
-        // Inject HTML content into a new div with 'countdown-ui' class
         this.countdownElement = this._injectUI(htmlContent, 'countdown-ui-instance', 'countdown-ui');
 
-        // Find the specific element within the injected HTML
         const timerElement = this.countdownElement.querySelector('#countdown-timer');
         if (!timerElement) {
             console.error('Countdown HTML is missing #countdown-timer.');
@@ -154,8 +151,9 @@ class UIManager {
         let remainingSeconds = seconds;
 
         const updateTimer = () => {
-            timerElement.textContent = remainingSeconds;
-            // CSS animation handles flicker if defined in countdown.html
+            const minutes = Math.floor(remainingSeconds / 60);
+            const secs = remainingSeconds % 60;
+            timerElement.textContent = `${minutes}:${secs.toString().padStart(2, '0')}`;
 
             if (remainingSeconds <= 0) {
                 clearInterval(this.countdownInterval);
@@ -163,25 +161,22 @@ class UIManager {
                 if (onComplete && typeof onComplete === 'function') {
                     onComplete();
                 }
-                // Fade out by removing class
                 if (this.countdownElement) {
                     this.countdownElement.classList.remove('active');
-                    // Remove from DOM after transition (match CSS transition duration)
                     setTimeout(() => {
                         if (this.countdownElement) {
                             this.countdownElement.remove();
                             this.countdownElement = null;
                         }
-                    }, 300); // Match transition duration in countdown.html CSS
+                    }, 300);
                 }
             }
             remainingSeconds--;
         };
 
-        // Initial display and fade in
-        updateTimer(); // Set initial time
+        updateTimer();
         requestAnimationFrame(() => {
-            setTimeout(() => { // Ensure transition triggers
+            setTimeout(() => {
                 if (this.countdownElement) this.countdownElement.classList.add('active');
             }, 10);
         });

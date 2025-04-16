@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { UI } from './uiManager.js';
 import { playerState } from './player.js';
+import { setNormalDiscs } from './lostDisc.js';
 
-const DISC_COUNT = 10; // How many discs to spawn
+const DISC_COUNT = 20; // How many discs to spawn
 const DISC_RADIUS = 0.3;
 const DISC_THICKNESS = 0.05;
 const DISC_SEGMENTS = 16; // Lower poly count
@@ -77,6 +78,9 @@ export function setupCollectibles(scene) {
 
     console.log(`Created ${discs.length} collectible discs.`);
 
+    // Store discs reference in lostDisc system
+    setNormalDiscs(discs);
+
     return {
         discs,
         checkDiscCollection,
@@ -89,10 +93,16 @@ export function setupCollectibles(scene) {
  * @param {THREE.Vector3} playerPosition - The player's current position.
  */
 function checkDiscCollection(playerPosition) {
-    if (!discCounterElement) return;
+    if (!discCounterElement || discs.length === 0) return;
 
     for (let i = discs.length - 1; i >= 0; i--) {
         const disc = discs[i];
+        // Skip if disc is no longer valid
+        if (!disc || !disc.parent) {
+            discs.splice(i, 1);
+            continue;
+        }
+
         const distance = Math.sqrt(
             Math.pow(playerPosition.x - disc.position.x, 2) +
             Math.pow(playerPosition.z - disc.position.z, 2)
@@ -102,7 +112,7 @@ function checkDiscCollection(playerPosition) {
             // Collect the disc
             disc.parent.remove(disc);
             discs.splice(i, 1);
-            playerState.collectDisc(); // Use playerState to track collection
+            playerState.collectDisc();
             updateDiscCounter();
             console.log(`Collected disc! Total: ${playerState.discCount}`);
             

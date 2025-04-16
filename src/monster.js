@@ -7,7 +7,7 @@ class Monster {
         this.model = null;
         this.isActive = false;
         this.hasBeenSeen = false;
-        this.followDistance = 3.5;
+        this.followDistance = 7;
         this.position = new THREE.Vector3();
         this.spawnOffset = new THREE.Vector3(); // Store the initial offset from player
         this.loader = new GLTFLoader();
@@ -19,7 +19,7 @@ class Monster {
     loadMonsterModel() {
         console.log(' Attempting to load monster model...');
         this.loader.load(
-            'assets/models/Monster.glb',  // Updated path to include models directory
+            'assets/models/the hollow.glb',  // Updated path to include models directory
             (gltf) => {
                 this.model = gltf.scene;
                 this.model.visible = false; // Hide initially

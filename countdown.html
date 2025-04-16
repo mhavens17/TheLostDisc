@@ -5,17 +5,18 @@
     <style>
         /* Base styles for the countdown container */
         .countdown-ui {
-            position: absolute;
-            /* New Position: Top-Center */
-            top: 15%; 
+            position: fixed;
+            top: 15%;  /* Move higher on screen */
             left: 50%;
-            transform: translateX(-50%); /* Only X transform now */
-            opacity: 0;
-            transition: opacity 0.3s ease-in;
-            pointer-events: none;
-            z-index: 101;
-            text-align: center; /* Center align title and timer */
-            /* animation: flicker 1s infinite alternate; */ /* Optional */
+            transform: translate(-50%, 0);  /* Only translate X since we want it higher */
+            color: #ff0000;
+            font-family: monospace;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         /* Style when the countdown is active */
@@ -23,22 +24,18 @@
             opacity: 1;
         }
 
-        /* Styling for the title text */
-        #countdown-title {
-            color: #ddd; /* Slightly dimmer white */
-            font-family: 'Impact', sans-serif; /* More impactful font */
-            font-size: 36px;
-            margin-bottom: 10px; /* Space between title and timer */
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+        /* Styling for the text above the timer */
+        #countdown-text {
+            font-size: 24px;  /* Smaller text */
+            color: #ff0000;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            white-space: nowrap;  /* Keep text in one line */
         }
 
         /* Styling for the timer text itself */
         #countdown-timer {
-            color: #ff0000; /* Red countdown text */
-            font-family: "Courier New", Courier, monospace;
-            font-size: 72px;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 10px #ff0000; /* Added glow */
+            font-size: 48px;  /* Smaller timer */
         }
 
         /* Optional flicker animation */
@@ -49,8 +46,9 @@
     </style>
 </head>
 <body>
-    <!-- Container now includes title and timer -->
-    <div id="countdown-title">THE HUNGRY ROAMS FREE</div>
-    <div id="countdown-timer"></div>
+    <div class="countdown-ui">
+        <div id="countdown-text">THE HOLLOW ROAMS FREE</div>
+        <div id="countdown-timer"></div>
+    </div>
 </body>
 </html> 

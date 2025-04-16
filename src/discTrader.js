@@ -6,6 +6,7 @@ class DiscTrader {
     constructor() {
         this.currentDiscData = null;
         this._canTrade = false;
+        this.soldDiscsCount = 0;
     }
 
     getDiscCount() {
@@ -49,7 +50,16 @@ class DiscTrader {
             playerState.discCount--;
             this.updateDiscCounter();
             const newDisc = this.generateNewDisc();
-            console.log('Traded disc. New count:', playerState.discCount);
+            
+            // Track sold discs and check for final sequence trigger
+            this.soldDiscsCount++;
+            if (this.soldDiscsCount === 15) {
+                console.log('15th disc sold - Initiating final sequence');
+                // Dispatch event for final sequence
+                document.dispatchEvent(new CustomEvent('finalSequenceStart'));
+            }
+            
+            console.log('Traded disc. New count:', playerState.discCount, 'Total sold:', this.soldDiscsCount);
             return newDisc;
         }
         console.log('Trade failed: trading disabled or no discs available');

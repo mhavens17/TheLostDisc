@@ -11,6 +11,7 @@ import { UI, setupGameUI } from './uiManager.js'; // Import from new manager
 import { MerchantMachine, isNearMachine } from './machine.js';
 import { createMonster } from './monster.js';
 import { playerState } from './player.js';
+import { setupLostDisc, animateLostDisc } from './lostDisc.js';
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -82,16 +83,7 @@ document.addEventListener('gameStart', () => {
 // Listen for all discs collected event
 document.addEventListener('allDiscsCollected', (event) => {
     console.log("Main.js received allDiscsCollected event!", event.detail);
-    
-    // Show the title text (make it last longer than the countdown)
-    // UI.showText("THE HUNGRY ROAMS FREE", 65000, 'top-center'); // REMOVED - Now part of countdown.html
-
-    // Start the 60-second countdown
-    UI.showCountdown(60, () => {
-        console.log("Countdown finished! The Hungry has arrived?");
-        // Add game over logic or other consequences here
-        UI.showText("YOU FAILED TO ESCAPE", 10000, 'center'); // Example outcome text
-    });
+    // The countdown is now triggered by Lost Disc collection instead
 });
 
 // Setup environment (fog, lighting, ground)
@@ -104,6 +96,9 @@ setupEnvironment(scene);
 // Setup collectibles
 const collectibleData = setupCollectibles(scene); // Call setupCollectibles without uiContainer
 checkDiscCollection = collectibleData.checkDiscCollection; // Store the check function
+
+// Setup Lost Disc system
+const lostDiscSystem = setupLostDisc(scene);
 
 // Create twigs with machine position check
 createTwigs(scene, (position) => {
@@ -136,16 +131,25 @@ playerState.setMonsterReference(monster);
 
 // Add G key to controls
 keys.g = false;
+keys.h = false; // Add H key for Lost Disc debug
 document.addEventListener('keydown', (event) => {
     if (event.key.toLowerCase() === 'g') {
         keys.g = true;
         console.log('🎮 G key pressed - Attempting to spawn monster...');
         playerState.spawnMonster();
     }
+    if (event.key.toLowerCase() === 'h') {
+        keys.h = true;
+        console.log('🎮 H key pressed - Debug spawning Lost Disc...');
+        document.dispatchEvent(new CustomEvent('spawnLostDisc'));
+    }
 });
 document.addEventListener('keyup', (event) => {
     if (event.key.toLowerCase() === 'g') {
         keys.g = false;
+    }
+    if (event.key.toLowerCase() === 'h') {
+        keys.h = false;
     }
 });
 
@@ -190,6 +194,11 @@ function animate() {
             checkDiscCollection(controls.getObject().position);
         }
 
+        // Check for Lost Disc collection
+        if (lostDiscSystem.checkLostDiscCollection) {
+            lostDiscSystem.checkLostDiscCollection(controls.getObject().position);
+        }
+
         // Check player proximity to merchant machine
         if (merchantMachine) {
             merchantMachine.checkPlayerProximity(controls.getObject().position);
@@ -197,6 +206,7 @@ function animate() {
     }
     
     animateCollectibles(time);
+    animateLostDisc(time);
 
     renderer.render(scene, camera);
 }
