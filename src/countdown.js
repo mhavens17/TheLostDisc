@@ -29,7 +29,7 @@ class FinalCountdown {
             this.shepardsFearSound.play().catch(error => {
                 console.error("Error playing Shepard's Fear:", error);
             });
-        }, 45000);
+        }, 15000);
     }
 }
 

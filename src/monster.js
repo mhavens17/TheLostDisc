@@ -7,7 +7,7 @@ class Monster {
         this.model = null;
         this.isActive = false;
         this.hasBeenSeen = false;
-        this.followDistance = 7;
+        this.followDistance = 6;
         this.position = new THREE.Vector3();
         this.spawnOffset = new THREE.Vector3(); // Store the initial offset from player
         this.loader = new GLTFLoader();
@@ -19,7 +19,7 @@ class Monster {
     loadMonsterModel() {
         console.log(' Attempting to load monster model...');
         this.loader.load(
-            'assets/models/the hollow.glb',  // Updated path to include models directory
+            'assets/models/hollow.glb',  // Updated path to include models directory
             (gltf) => {
                 this.model = gltf.scene;
                 this.model.visible = false; // Hide initially
@@ -82,6 +82,12 @@ class Monster {
         
         this.position.copy(spawnPosition);
         this.model.position.copy(spawnPosition);
+
+        // Calculate direction from monster to player for rotation
+        const directionToPlayer = positionVector.clone().sub(spawnPosition).normalize();
+        const angle = Math.atan2(directionToPlayer.x, directionToPlayer.z);
+        this.model.rotation.y = angle;
+
         this.model.visible = true;
         this.isActive = true;
         console.log('👻 Monster spawned at position:', {
@@ -146,7 +152,7 @@ class Monster {
     }
 
     // Calculate if player is looking at monster
-    isPlayerLooking(playerPosition, playerForward, angleThreshold = 20) {
+    isPlayerLooking(playerPosition, playerForward, angleThreshold = 30) {
         if (!this.isActive) return false;
 
         // Convert position and direction to Vector3 if they're not already
