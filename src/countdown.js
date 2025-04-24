@@ -10,13 +10,6 @@ class FinalCountdown {
         if (this.isActive) return;
         this.isActive = true;
 
-        // Clear all UI elements except countdown
-        document.querySelectorAll('#game-ui-container > *').forEach(element => {
-            if (!element.classList.contains('countdown-ui')) {
-                element.remove();
-            }
-        });
-
         // Start 2-minute countdown
         UI.showCountdown(120, () => {
             console.log("Countdown finished - Spawning monster");

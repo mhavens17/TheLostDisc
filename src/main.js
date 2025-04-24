@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { setupControls } from './controls.js';
-import { setupEnvironment } from './environment.js';
+import { setupEnvironment, changeToLostDiscEnvironment } from './environment.js';
 // import { setupCollectibles } from './collectibles.js'; // Removed
 import { setupCollectibles, animateCollectibles } from './collectible.js'; // Import new functions
 import { createTwigs } from './twigs.js';
@@ -12,16 +12,23 @@ import { MerchantMachine, isNearMachine } from './machine.js';
 import { createMonster } from './monster.js';
 import { playerState } from './player.js';
 import { setupLostDisc, animateLostDisc } from './lostDisc.js';
+import { PostProcessingManager } from './postProcessing.js';
 
 // Scene setup
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 // Renderer setup with low resolution for PS1 effect
-const renderer = new THREE.WebGLRenderer({ antialias: false });
-renderer.setSize(320, 240); // Low resolution for PS1 effect
-renderer.setPixelRatio(1); // Force 1:1 pixel ratio
+const renderer = new THREE.WebGLRenderer({ 
+    antialias: false,
+    powerPreference: "high-performance"
+});
+renderer.setSize(320, 240);
+renderer.setPixelRatio(1);
 document.body.appendChild(renderer.domElement);
+
+// Initialize post-processing
+const postProcessing = new PostProcessingManager(renderer, scene, camera);
 
 // Scale up the canvas while maintaining pixelation
 renderer.domElement.style.width = '100vw';
@@ -87,15 +94,21 @@ document.addEventListener('allDiscsCollected', (event) => {
 });
 
 // Setup environment (fog, lighting, ground)
-setupEnvironment(scene);
+const environmentElements = setupEnvironment(scene);
 
 // Setup collectibles - Removed -> Replaced
 // console.log("Setting up collectibles...");
 // const { discs, checkDiscCollection, updateDiscCounter } = setupCollectibles(scene, uiContainer); // Old call
 // console.log(`Discs array length: ${discs.length}`);
 // Setup collectibles
-const collectibleData = setupCollectibles(scene); // Call setupCollectibles without uiContainer
-checkDiscCollection = collectibleData.checkDiscCollection; // Store the check function
+console.log("Setting up collectibles...");
+
+// Use an immediately invoked async function to handle async setupCollectibles
+(async () => {
+    const collectibleData = await setupCollectibles(scene);
+    checkDiscCollection = collectibleData.checkDiscCollection; // Store the check function
+    console.log(`Discs setup complete`);
+})();
 
 // Setup Lost Disc system
 const lostDiscSystem = setupLostDisc(scene);
@@ -123,6 +136,7 @@ camera.position.y = 1.7; // Average eye height
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
+    renderer.setSize(320, 240); // Keep low resolution
 });
 
 // Create monster instance after scene setup
@@ -151,6 +165,12 @@ document.addEventListener('keyup', (event) => {
     if (event.key.toLowerCase() === 'h') {
         keys.h = false;
     }
+});
+
+// Listen for Lost Disc environment change
+document.addEventListener('lostDiscEnvironmentChange', () => {
+    console.log('Changing environment for Lost Disc appearance');
+    changeToLostDiscEnvironment(scene, environmentElements);
 });
 
 // Animation loop
@@ -208,7 +228,8 @@ function animate() {
     animateCollectibles(time);
     animateLostDisc(time);
 
-    renderer.render(scene, camera);
+    // Use post-processing composer instead of direct renderer
+    postProcessing.render();
 }
 
 animate(); 

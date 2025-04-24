@@ -45,7 +45,6 @@ export function setupLostDisc(scene) {
     // Listen for final sequence start
     document.addEventListener('finalSequenceStart', () => {
         console.log('Final sequence started - spawning Lost Disc');
-        removeAllNormalDiscs();
         spawnLostDisc(scene);
     });
 
@@ -102,6 +101,9 @@ function spawnLostDisc(scene) {
     
     // Notify the player
     UI.showText('The Lost Disc has appeared!', 3000, 'top-center');
+
+    // Dispatch event for visual change
+    document.dispatchEvent(new CustomEvent('lostDiscEnvironmentChange'));
 }
 
 /**

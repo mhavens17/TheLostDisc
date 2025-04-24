@@ -24,11 +24,6 @@ export class MerchantMachine {
         this.setupKeyListener();
         this.initializeMerchantUI();  // Start initialization
         console.log('Merchant machine initialized at position:', this.position);
-
-        // Listen for final sequence
-        document.addEventListener('finalSequenceStart', () => {
-            this.remove();
-        });
     }
 
     async initializeMerchantUI() {
@@ -86,8 +81,32 @@ export class MerchantMachine {
     async loadModel() {
         const loader = new GLTFLoader();
         try {
-            const gltf = await loader.loadAsync('assets/models/Machine.glb');
+            const gltf = await loader.loadAsync('assets/models/Machine3.glb');
             this.machine = gltf.scene;
+            
+            // Traverse the model to find the third mesh
+            this.machine.traverse((child) => {
+                if (child.isMesh) {
+                    console.log('Processing mesh:', child.name);
+                    
+                    // Target the third mesh (Cube001_3)
+                    if (child.name === 'Cube001_3') {
+                        console.log('Applying emissive material to:', child.name);
+                        child.material = new THREE.MeshStandardMaterial({
+                            color: 0xFF0000, // Bright red base color
+                            emissive: 0xFF0000, // Bright red emissive
+                            emissiveIntensity: 5.0, // Much higher intensity
+                            metalness: 0.0, // Reduce metalness to make emissive more prominent
+                            roughness: 0.2, // Lower roughness for more shine
+                            toneMapped: false // Ensure emissive isn't affected by tone mapping
+                        });
+                        
+                        // Make sure the material gets updated
+                        child.material.needsUpdate = true;
+                    }
+                }
+            });
+            
             this.machine.position.copy(this.position);
             this.scene.add(this.machine);
             console.log('Merchant machine model loaded successfully');
