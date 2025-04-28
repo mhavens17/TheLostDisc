@@ -5,7 +5,7 @@ node_modules/
 
 # Vite
 .vite/
-dist/
+# dist/
 dist-ssr/
 
 # Environment files
