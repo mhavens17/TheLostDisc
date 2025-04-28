@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { GLTFLoader } from 'https://unpkg.com/three@0.152.2/examples/jsm/loaders/GLTFLoader.js';
 import { UI } from './uiManager.js';  // Import UI manager
 import { discTrader } from './discTrader.js';
 import { playerState } from './player.js';
