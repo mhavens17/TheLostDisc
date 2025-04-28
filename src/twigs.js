@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
 
 export function createTwigs(scene, validatePosition = null) {
     const twigCount = 3;

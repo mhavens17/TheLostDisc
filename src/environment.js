@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
 
 export function setupEnvironment(scene) {
     // Fog setup - slightly reduced density for better visibility

@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
 
 // Use a lighter grey for a stone-like appearance
 const STATUE_MATERIAL = new THREE.MeshLambertMaterial({ color: 0xAAAAAA }); // Lighter grey, non-shiny
