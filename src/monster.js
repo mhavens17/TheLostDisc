@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { soundManager } from './audio.js';
 
 class Monster {
     constructor(scene) {
@@ -119,36 +120,17 @@ class Monster {
         this.hasBeenSeen = true;
         console.log('😱 Triggering jumpscare effect!');
 
-        // Implement jumpscare effects here
-        // Example effects:
-        const flash = document.createElement('div');
-        flash.style.position = 'fixed';
-        flash.style.top = '0';
-        flash.style.left = '0';
-        flash.style.width = '100%';
-        flash.style.height = '100%';
-        flash.style.backgroundColor = 'white';
-        flash.style.opacity = '0';
-        flash.style.transition = 'opacity 0.1s';
-        flash.style.pointerEvents = 'none';
-        flash.style.zIndex = '1000';
-        
-        document.body.appendChild(flash);
-        
-        // Flash effect
-        requestAnimationFrame(() => {
-            flash.style.opacity = '1';
-            setTimeout(() => {
-                flash.style.opacity = '0';
-                setTimeout(() => {
-                    flash.remove();
-                }, 100);
-            }, 50);
-        });
+        // Cut off Shepard's Fear sound using the cleaner method
+        soundManager.stopSoundsBySource('shepards fear');
 
-        // Play scream sound if available
-        // const scream = new Audio('path/to/scream.mp3');
-        // scream.play();
+        // Play scare sound with full volume and no pitch randomization
+        soundManager.play('scare', { volume: 1.0 });
+        
+        // Trigger game over after 1.5 seconds
+        setTimeout(() => {
+            // Dispatch game over event
+            document.dispatchEvent(new CustomEvent('gameOver'));
+        }, 1500);
     }
 
     // Calculate if player is looking at monster

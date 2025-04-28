@@ -1,28 +1,34 @@
 import { UI } from './uiManager.js';
+import { soundManager } from './audio.js';
 
 class FinalCountdown {
     constructor() {
-        this.shepardsFearSound = new Audio('assets/sounds/shepards fear.mp3');
         this.isActive = false;
+        this.monsterSpawned = false;
+        
+        // Add event listener for monster spawn
+        document.addEventListener('spawnMonster', () => {
+            this.monsterSpawned = true;
+        });
     }
 
     startFinalSequence() {
         if (this.isActive) return;
         this.isActive = true;
+        this.monsterSpawned = false;
 
         // Start 2-minute countdown
         UI.showCountdown(120, () => {
-            console.log("Countdown finished - Spawning monster");
-            document.dispatchEvent(new CustomEvent('spawnMonster'));
+            console.log("Countdown finished - Zero reached");
+            // The monster spawn will be triggered automatically 13 seconds after reaching zero
+            // This is now handled by the UIManager.showCountdown method
         });
 
-        // Play Shepard's Fear after 45 seconds
+        // Play Shepard's Fear after 30 seconds
         setTimeout(() => {
             console.log("Playing Shepard's Fear");
-            this.shepardsFearSound.play().catch(error => {
-                console.error("Error playing Shepard's Fear:", error);
-            });
-        }, 15000);
+            soundManager.play('shepardsFear', { volume: 0.9 });
+        }, 30000);
     }
 }
 

@@ -17,7 +17,8 @@ export function setupEnvironment(scene) {
     scene.add(directionalLight);
     
     // Ground
-    const groundGeometry = new THREE.PlaneGeometry(100, 100);
+    // Original size: 100x100 - which means edges at x: ±50, z: ±50
+    const groundGeometry = new THREE.PlaneGeometry(150, 150); // Increased by 50% from 100x100
     const groundMaterial = new THREE.MeshLambertMaterial({ 
         color: 0x5C5C4D,
         side: THREE.DoubleSide

@@ -9,6 +9,14 @@ class PlayerState {
         this.forward = { x: 0, y: 0, z: -1 }; // Default forward direction
         this.monster = null; // Reference to monster instance
         this.updateMoneyDisplay(); // Initialize money display
+        
+        // Boundary values (will be set via setBoundary)
+        this.boundary = {
+            minX: -50, // Default values (will be overridden)
+            maxX: 50,
+            minZ: -50,
+            maxZ: 50
+        };
     }
 
     get discCount() {
@@ -53,10 +61,65 @@ class PlayerState {
         console.log('Player collected disc. New count:', this.discCount);
     }
 
+    /**
+     * Set boundary limits based on ground plane dimensions
+     * @param {Object} ground - The ground plane mesh
+     * @param {number} padding - Optional padding inside the boundary (default: 0)
+     */
+    setBoundary(ground, padding = 0) {
+        // OVERRIDE: Instead of using the actual ground dimensions (which are now 150x150),
+        // we're manually setting the boundary to the original 100x100 dimensions
+        
+        // Original boundary calculation from ground dimensions:
+        // const width = ground.geometry.parameters.width;
+        // const height = ground.geometry.parameters.height;
+        
+        // Hard-code to original dimensions (100x100)
+        const width = 100;
+        const height = 100;
+        
+        // Calculate boundaries with optional padding
+        this.boundary = {
+            minX: -(width / 2) + padding,  // -50 + padding
+            maxX: (width / 2) - padding,   // +50 - padding
+            minZ: -(height / 2) + padding, // -50 + padding
+            maxZ: (height / 2) - padding   // +50 - padding
+        };
+        
+        // Add a record of the original boundary values for reference
+        this.originalBoundary = {
+            xRange: "±50",
+            zRange: "±50",
+            actualMinX: -50 + padding,
+            actualMaxX: 50 - padding,
+            actualMinZ: -50 + padding,
+            actualMaxZ: 50 - padding
+        };
+        
+        console.log('Player boundaries set:', this.boundary);
+    }
+
+    /**
+     * Clamp the position to stay within boundaries
+     * @param {number} x - The unclamped X position
+     * @param {number} z - The unclamped Z position
+     * @returns {Object} The clamped position {x, z}
+     */
+    clampPositionToBoundary(x, z) {
+        const clampedX = Math.max(this.boundary.minX, Math.min(this.boundary.maxX, x));
+        const clampedZ = Math.max(this.boundary.minZ, Math.min(this.boundary.maxZ, z));
+        
+        return { x: clampedX, z: clampedZ };
+    }
+
     updatePosition(x, y, z) {
-        this.position.x = x;
+        // Clamp the position to the boundary
+        const clampedPosition = this.clampPositionToBoundary(x, z);
+        
+        // Update position with clamped values
+        this.position.x = clampedPosition.x;
         this.position.y = y;
-        this.position.z = z;
+        this.position.z = clampedPosition.z;
 
         // Update monster position if active
         if (this.monster && this.monster.isActive) {

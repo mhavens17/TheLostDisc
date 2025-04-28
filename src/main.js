@@ -13,6 +13,8 @@ import { createMonster } from './monster.js';
 import { playerState } from './player.js';
 import { setupLostDisc, animateLostDisc } from './lostDisc.js';
 import { PostProcessingManager } from './postProcessing.js';
+import { createSpikeBorder } from './border.js'; // Import spike border
+import gameOverScreen from './gameover.js'; // Import game over screen
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -79,6 +81,7 @@ function scheduleNextTerminalMessage() {
 
 // Declare variables for collectibles
 let checkDiscCollection;
+let lostDiscSystem;
 
 // Listen for gameStart event
 document.addEventListener('gameStart', () => {
@@ -96,22 +99,37 @@ document.addEventListener('allDiscsCollected', (event) => {
 // Setup environment (fog, lighting, ground)
 const environmentElements = setupEnvironment(scene);
 
-// Setup collectibles - Removed -> Replaced
-// console.log("Setting up collectibles...");
-// const { discs, checkDiscCollection, updateDiscCounter } = setupCollectibles(scene, uiContainer); // Old call
-// console.log(`Discs array length: ${discs.length}`);
-// Setup collectibles
-console.log("Setting up collectibles...");
+// Set player boundaries based on ground dimensions
+// IMPORTANT: We're keeping the original boundary limits (±50 on x and z axes)
+// even though the ground is now 150x150 (±75 on x and z axes)
+// This creates an "extended" area beyond the player boundary but still within the visible ground
+const boundaryPadding = 1.0; // Add a small padding to keep player visibly inside the border
+playerState.setBoundary(environmentElements.ground, boundaryPadding);
 
-// Use an immediately invoked async function to handle async setupCollectibles
+// Add a visual indicator (console message) of the actual boundary limits
+console.log("Player boundaries set to original 100x100 area. Player movement restricted to x: ±50, z: ±50");
+console.log("Ground size is 150x150, creating an extended visual area that player cannot access");
+
+// Create spike border around the ground
+createSpikeBorder(scene, environmentElements.ground);
+
+// Setup collectibles and Lost Disc with async functions
+console.log("Setting up collectibles and Lost Disc...");
+// Initialize async components
 (async () => {
-    const collectibleData = await setupCollectibles(scene);
-    checkDiscCollection = collectibleData.checkDiscCollection; // Store the check function
-    console.log(`Discs setup complete`);
+    try {
+        // Load collectibles first
+        const collectibleData = await setupCollectibles(scene);
+        checkDiscCollection = collectibleData.checkDiscCollection;
+        console.log(`Discs setup complete`);
+        
+        // Then load Lost Disc system
+        lostDiscSystem = await setupLostDisc(scene);
+        console.log(`Lost Disc system initialized`);
+    } catch (error) {
+        console.error("Error setting up game components:", error);
+    }
 })();
-
-// Setup Lost Disc system
-const lostDiscSystem = setupLostDisc(scene);
 
 // Create twigs with machine position check
 createTwigs(scene, (position) => {
@@ -173,9 +191,36 @@ document.addEventListener('lostDiscEnvironmentChange', () => {
     changeToLostDiscEnvironment(scene, environmentElements);
 });
 
+// Listen for monster spawn event
+document.addEventListener('spawnMonster', () => {
+    console.log('Monster spawn event received - Spawning monster');
+    playerState.spawnMonster();
+});
+
+// Listen for game over event
+document.addEventListener('gameOver', () => {
+    console.log('Game over event received');
+    isGameActive = false;
+    // Lock controls
+    if (controls.isLocked) {
+        controls.unlock();
+    }
+    // Show game over screen
+    gameOverScreen.show();
+});
+
 // Animation loop
+let isGameActive = true; // Track if game is still active
+
 function animate() {
     requestAnimationFrame(animate);
+
+    // Skip game logic if game is not active
+    if (!isGameActive) {
+        // Just render the scene
+        postProcessing.render();
+        return;
+    }
 
     const time = Date.now() * 0.001;
 
@@ -201,6 +246,10 @@ function animate() {
             playerObject.position.z
         );
         
+        // Apply the clamped position back to the controls object
+        playerObject.position.x = playerState.position.x;
+        playerObject.position.z = playerState.position.z;
+        
         // Get camera's forward direction
         const forward = new THREE.Vector3();
         camera.getWorldDirection(forward);
@@ -215,7 +264,7 @@ function animate() {
         }
 
         // Check for Lost Disc collection
-        if (lostDiscSystem.checkLostDiscCollection) {
+        if (lostDiscSystem && lostDiscSystem.checkLostDiscCollection) {
             lostDiscSystem.checkLostDiscCollection(controls.getObject().position);
         }
 

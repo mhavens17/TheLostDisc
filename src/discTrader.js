@@ -1,6 +1,7 @@
 import { generateMusicEntry } from './musicGenerator.js';
 import { UI } from './uiManager.js';
 import { playerState } from './player.js';
+import { soundManager } from './audio.js';
 
 class DiscTrader {
     constructor() {
@@ -50,6 +51,9 @@ class DiscTrader {
             playerState.discCount--;
             this.updateDiscCounter();
             const newDisc = this.generateNewDisc();
+            
+            // Play trade sound with random pitch
+            soundManager.play('trade', { randomPitch: true });
             
             // Track sold discs and check for final sequence trigger
             this.soldDiscsCount++;

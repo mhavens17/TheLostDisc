@@ -20,7 +20,7 @@
 
         /* Position variations */
         .text-ui.top-center {
-            top: 75%;
+            top: 75%; /* Keep original position for regular messages */
         }
         .text-ui.center {
             top: 85%;
@@ -36,10 +36,23 @@
         /* Styling for the message text itself */
         #text-message {
             color: #eee; /* Off-white text */
-            font-family: sans-serif;
+            font-family: monospace; /* Same font as countdown */
             font-size: 28px;
             font-weight: bold;
             text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+        }
+
+        /* Special styling for the Lost Disc message */
+        .text-ui.lost-disc {
+            top: 10% !important; /* Position at the top like countdown, override other positions */
+        }
+        
+        .text-ui.lost-disc #text-message {
+            color: #ff0000; /* Red text for Lost Disc */
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5); /* Same glow effect as countdown */
+            font-size: 24px; /* Same size as countdown-text */
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
     </style>
 </head>

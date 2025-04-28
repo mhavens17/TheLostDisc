@@ -1,3 +1,6 @@
+// Import the soundManager
+import { soundManager } from './audio.js';
+
 class UIManager {
     constructor() {
         this.uiContainer = document.createElement('div');
@@ -17,6 +20,7 @@ class UIManager {
         this.countdownElement = null;
         this.labelTypingSpeed = 1;  // Speed for labels
         this.contentTypingSpeed = 5;  // Speed for content
+        this.lastTickTime = 0; // Track when the last tick sound played
         
         // Initialize merchant UI immediately
         this.merchantUI = null;
@@ -43,6 +47,12 @@ class UIManager {
             }
         `;
         document.head.appendChild(style);
+
+        // Add event listener for custom text events
+        document.addEventListener('showText', (event) => {
+            const { message, duration, position, className } = event.detail;
+            this.showText(message, duration, position, className);
+        });
 
         console.log("UIManager initialized.");
     }
@@ -149,29 +159,70 @@ class UIManager {
         }
 
         let remainingSeconds = seconds;
+        let isZeroReached = false;
+        let toggleInterval = null;
+        let toggleState = true;
 
         const updateTimer = () => {
             const minutes = Math.floor(remainingSeconds / 60);
             const secs = remainingSeconds % 60;
             timerElement.textContent = `${minutes}:${secs.toString().padStart(2, '0')}`;
 
-            if (remainingSeconds <= 0) {
-                clearInterval(this.countdownInterval);
-                this.countdownInterval = null;
+            // Play tick sound effect with rate limiting to avoid overlapping sounds
+            if (remainingSeconds > 0) {
+                const now = Date.now();
+                // Only play if at least 950ms have passed since the last tick (prevent overlapping)
+                if (now - this.lastTickTime >= 950) {
+                    //soundManager.play('tick', { randomPitch: true, volume: 0.5 });
+                    //this.lastTickTime = now;
+                }
+            }
+
+            if (remainingSeconds <= 0 && !isZeroReached) {
+                isZeroReached = true;
+                // Call onComplete immediately
                 if (onComplete && typeof onComplete === 'function') {
                     onComplete();
                 }
-                if (this.countdownElement) {
-                    this.countdownElement.classList.remove('active');
-                    setTimeout(() => {
-                        if (this.countdownElement) {
-                            this.countdownElement.remove();
-                            this.countdownElement = null;
-                        }
-                    }, 300);
-                }
+                
+                // Keep showing 0:00, but start toggling visibility
+                clearInterval(this.countdownInterval);
+                this.countdownInterval = null;
+                
+                // Start toggling visibility
+                toggleInterval = setInterval(() => {
+                    toggleState = !toggleState;
+                    if (this.countdownElement) {
+                        this.countdownElement.style.visibility = toggleState ? 'visible' : 'hidden';
+                    }
+                }, 500); // Toggle every 500ms
+                
+                // After 13 seconds, trigger monster spawn and remove countdown
+                setTimeout(() => {
+                    console.log("13 seconds after countdown reached zero - Auto spawning monster");
+                    document.dispatchEvent(new CustomEvent('spawnMonster'));
+                    
+                    // Clean up
+                    if (toggleInterval) {
+                        clearInterval(toggleInterval);
+                        toggleInterval = null;
+                    }
+                    
+                    if (this.countdownElement) {
+                        this.countdownElement.classList.remove('active');
+                        setTimeout(() => {
+                            if (this.countdownElement) {
+                                this.countdownElement.remove();
+                                this.countdownElement = null;
+                            }
+                        }, 300);
+                    }
+                }, 13000);
             }
-            remainingSeconds--;
+            
+            if (!isZeroReached) {
+                remainingSeconds--;
+            }
         };
 
         updateTimer();
@@ -185,7 +236,7 @@ class UIManager {
     }
 
     // --- Text ---
-    async showText(message, duration = 3000, position = 'top-center') {
+    async showText(message, duration = 3000, position = 'top-center', className = null) {
         console.log(`Showing text: "${message}" for ${duration}ms`);
         const htmlContent = await this._loadHTML('text.html');
         if (!htmlContent) return;
@@ -194,6 +245,11 @@ class UIManager {
         // Inject HTML content into a new div with 'text-ui' class
         const textElement = this._injectUI(htmlContent, elementId, 'text-ui');
         textElement.classList.add(position); // Add position class (e.g., 'top-center')
+        
+        // Add custom class if provided
+        if (className) {
+            textElement.classList.add(className);
+        }
 
         // Find the specific element within the injected HTML
         const messageElement = textElement.querySelector('#text-message');

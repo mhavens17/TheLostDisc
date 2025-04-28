@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { UI } from './uiManager.js';
 import { playerState } from './player.js';
 import { setNormalDiscs } from './lostDisc.js';
+import { soundManager } from './audio.js';
 
 const DISC_COUNT = 20; // Initial disc count
 const DISC_RADIUS = 0.3;
@@ -240,6 +241,9 @@ function checkDiscCollection(playerPosition) {
             discs.splice(i, 1);
             playerState.collectDisc();
             collectedThisFrame = true;
+            
+            // Play collection sound effect with random pitch
+            soundManager.play('collect', { randomPitch: true });
             
             UI.showText('Disc Acquired!', 2000, 'top-center');
         }
