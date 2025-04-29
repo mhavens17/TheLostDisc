@@ -3,6 +3,7 @@ import { playerState } from './player.js';
 class GameOverScreen {
     constructor() {
         this.container = null;
+        this.backgroundImage = null;
         this.initialized = false;
     }
 
@@ -26,6 +27,31 @@ class GameOverScreen {
         this.container.style.opacity = '0';
         this.container.style.transition = 'opacity 0.5s ease';
 
+        // Create background image container
+        this.backgroundImage = document.createElement('div');
+        this.backgroundImage.style.position = 'absolute';
+        this.backgroundImage.style.top = '0';
+        this.backgroundImage.style.left = '0';
+        this.backgroundImage.style.width = '100%';
+        this.backgroundImage.style.height = '100%';
+        this.backgroundImage.style.backgroundImage = 'url("assets/textures/gameover.png")';
+        this.backgroundImage.style.backgroundSize = 'cover';
+        this.backgroundImage.style.backgroundPosition = 'center';
+        this.backgroundImage.style.opacity = '0';
+        this.backgroundImage.style.transition = 'opacity 1.5s ease-in-out';
+        this.backgroundImage.style.zIndex = '1'; // Behind text elements
+
+        // Create content container for text elements
+        this.contentContainer = document.createElement('div');
+        this.contentContainer.style.position = 'relative';
+        this.contentContainer.style.zIndex = '2'; // Above background image
+        this.contentContainer.style.display = 'flex';
+        this.contentContainer.style.flexDirection = 'column';
+        this.contentContainer.style.alignItems = 'center';
+        this.contentContainer.style.justifyContent = 'center';
+        this.contentContainer.style.width = '100%';
+        this.contentContainer.style.height = '100%';
+
         // Create game over text
         this.gameOverText = document.createElement('h1');
         this.gameOverText.textContent = 'Game Over';
@@ -34,7 +60,8 @@ class GameOverScreen {
         this.gameOverText.style.fontSize = '48px';
         this.gameOverText.style.marginBottom = '20px';
         this.gameOverText.style.opacity = '0';
-        this.gameOverText.style.transition = 'opacity 0.5s ease';
+        this.gameOverText.style.transition = 'opacity 0.8s ease-in-out';
+        this.gameOverText.style.textShadow = '2px 2px 4px rgba(0, 0, 0, 0.5)';
 
         // Create score text
         this.scoreText = document.createElement('p');
@@ -43,7 +70,8 @@ class GameOverScreen {
         this.scoreText.style.fontSize = '24px';
         this.scoreText.style.marginBottom = '30px';
         this.scoreText.style.opacity = '0';
-        this.scoreText.style.transition = 'opacity 0.5s ease';
+        this.scoreText.style.transition = 'opacity 0.8s ease-in-out';
+        this.scoreText.style.textShadow = '2px 2px 4px rgba(0, 0, 0, 0.5)';
 
         // Create play again button
         this.playAgainButton = document.createElement('button');
@@ -56,7 +84,8 @@ class GameOverScreen {
         this.playAgainButton.style.fontFamily = 'monospace';
         this.playAgainButton.style.cursor = 'pointer';
         this.playAgainButton.style.opacity = '0';
-        this.playAgainButton.style.transition = 'opacity 0.5s ease, background-color 0.2s ease';
+        this.playAgainButton.style.transition = 'opacity 0.8s ease-in-out, background-color 0.2s ease';
+        this.playAgainButton.style.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.5)';
 
         // Button hover effects
         this.playAgainButton.addEventListener('mouseover', () => {
@@ -74,10 +103,13 @@ class GameOverScreen {
             window.location.reload();
         });
 
-        // Add elements to container
-        this.container.appendChild(this.gameOverText);
-        this.container.appendChild(this.scoreText);
-        this.container.appendChild(this.playAgainButton);
+        // Add elements to containers
+        this.contentContainer.appendChild(this.gameOverText);
+        this.contentContainer.appendChild(this.scoreText);
+        this.contentContainer.appendChild(this.playAgainButton);
+        
+        this.container.appendChild(this.backgroundImage);
+        this.container.appendChild(this.contentContainer);
         
         // Add container to document body
         document.body.appendChild(this.container);
@@ -94,26 +126,36 @@ class GameOverScreen {
         // Make the black screen visible immediately
         this.container.style.opacity = '1';
         
-        // After 2 seconds, show the text and button
+        // After 3 seconds, fade in the background image
         setTimeout(() => {
-            this.gameOverText.style.opacity = '1';
+            this.backgroundImage.style.opacity = '1';
             
-            // After a short delay, show the score
+            // After 4 seconds total (1 second after background starts fading in), show the text elements
             setTimeout(() => {
-                this.scoreText.style.opacity = '1';
+                this.gameOverText.style.opacity = '1';
                 
-                // After another short delay, show the button
+                // After a short delay, show the score
                 setTimeout(() => {
-                    this.playAgainButton.style.opacity = '1';
+                    this.scoreText.style.opacity = '1';
+                    
+                    // After another short delay, show the button
+                    setTimeout(() => {
+                        this.playAgainButton.style.opacity = '1';
+                    }, 300);
                 }, 300);
-            }, 300);
-        }, 2000);
+            }, 1000);
+        }, 3000);
     }
 
     hide() {
         if (!this.initialized || !this.container) return;
         
+        // Fade out all elements
         this.container.style.opacity = '0';
+        this.backgroundImage.style.opacity = '0';
+        this.gameOverText.style.opacity = '0';
+        this.scoreText.style.opacity = '0';
+        this.playAgainButton.style.opacity = '0';
         
         // After transition completes, remove from DOM
         setTimeout(() => {
@@ -121,7 +163,7 @@ class GameOverScreen {
                 this.container.parentNode.removeChild(this.container);
             }
             this.initialized = false;
-        }, 500);
+        }, 1500);
     }
 }
 

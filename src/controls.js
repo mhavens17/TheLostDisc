@@ -17,28 +17,35 @@ export function setupControls(camera, instructions) {
     
     // Click to play
     document.addEventListener('click', () => {
-        controls.lock();
+        // Only allow pointer lock after game has started
+        if (gameStarted) {
+            controls.lock();
+        }
     });
     
     // Lock/unlock controls
     controls.addEventListener('lock', () => {
         instructions.style.display = 'none';
-        
-        // Dispatch gameStart event only once
-        if (!gameStarted) {
-            gameStarted = true;
-            const gameStartEvent = new CustomEvent('gameStart');
-            document.dispatchEvent(gameStartEvent);
-            console.log('Game started! Player has clicked to play.');
-        }
     });
     
     controls.addEventListener('unlock', () => {
+        // Only show instructions if game has started
+        if (gameStarted) {
+            instructions.style.display = 'block';
+        }
+    });
+
+    // Listen for gameStart event
+    document.addEventListener('gameStart', () => {
+        gameStarted = true;
         instructions.style.display = 'block';
+        console.log('Controls enabled - Game has started!');
     });
     
     // Keyboard controls
     document.addEventListener('keydown', (event) => {
+        if (!gameStarted) return; // Ignore keyboard input before game starts
+        
         switch (event.code) {
             case 'KeyW':
                 keys.w = true;
@@ -56,6 +63,8 @@ export function setupControls(camera, instructions) {
     });
     
     document.addEventListener('keyup', (event) => {
+        if (!gameStarted) return; // Ignore keyboard input before game starts
+        
         switch (event.code) {
             case 'KeyW':
                 keys.w = false;

@@ -29,21 +29,21 @@ const vibes = {
     adjectives: ["Beloved", "Bold", "Brave", "Golden", "Holy", "Peaceful", "Wild", "Radiant", "Timeless", "Silent", "Burning", "Innocent", "Gentle", "Fragile", "Sacred", "Shiny", "Warm", "Bright", "Dreamy", "Electric", "Surreal", "Neon", "Cosmic", "Lucid", "Vivid", "Luminous", "Hypnotic", "Atomic", "Vibrant", "Sonic", "Charged", "Icy", "Infinite", "Chrome", "Silver", "Sublime", "Wavy", "Strange", "Polar", "Slick", "Crystalline", "Blinding", "Amplified", "Digital", "Searing", "Laced", "Deep", "Midnight", "Glacial", "Wired", "First", "Second", "Last", "Hot"],
     nouns: ["Heart", "Love", "Days", "Sun", "Candy", "Petal", "Apple", "Honey", "Glow", "Shell", "Kids","Charm", "Lake", "Pond", "Ocean", "Gem", "Ruby", "Sapphire", "Friend", "Comet", "Cloud", "Baby", "Locket", "Train", "Drive", "Horizon", "Beach", "Eyes", "Drift", "Stone", "Fold", "Earth", "Jupiter"],
     title_formats: ["[Adjective] [Noun]", "[Adjective]", "[Adjective] [Noun]", "[Noun] of [Adjective]", "[Noun]"],
-    artist_formats: ["The [Adjective] [Noun]", "[Adjective]", "[Noun]", "[Adjective] [Noun]",  "[Noun] of [Adjective]"]
+    artist_formats: ["The [Adjective] [Noun]", "[Adjective]", "[Noun]", "[Adjective] [Noun]"]
   },
   Edgy: {
     genres: ["Punk", "Metal", "Noise", "Shoegaze", "Industrial", "Hardcore", "Breakcore", "Nu-Metal", "Math Rock", "Black Metal", "Grunge", "Grungegaze", "Post-Punk", "Rock"],
     adjectives: ["Blunt", "Brutal", "Dark", "Feral", "Flaming", "Cold", "Hostile", "Jaded", "Rogue", "Toxic", "Hollow", "Cursed", "Bleeding", "First", "Second", "Last", "Small", "Hidden", "Remote", "Modern", "Ancient", "Flat"],
     nouns: ["Leather", "Switchblade", "Cigarette", "Chain", "Boots", "Skull", "Ring", "Bike", "Mirror", "Gas", "Mask", "Smoke", "Blade", "Saw", "Tag", "Denim", "Flare", "Book", "Wire", "Ashtray", "Claw", "Hammer", "Bottle", "Watch", "Bag", "Flag", "String", "Fish", "Code", "Program", "Safe", "Shortcut", "Scar", "Eye", "Spider", "Star", "Chrome", "Satellite", "Trap", "Tooth", "Dream", "Car", "Today", "Day", "Memory", "Space", "Shadow", "Ceiling", "Root", "Food", "Plastic", "Fighter", "Disease", "Plague", "Doctor", "Angel", "Multiply", "Moon", "Blur", "Moment", "Show", "Pig", "Animal", "Cow", "Bull", "Danger", "Neptune", "Mercury"],
     title_formats: ["[Adjective] [Noun]", "[Noun] of the [Noun]", "[Noun]", "[Adjective]", "[Adjective]", "[Adjective] [Noun]", "[Noun] of [Adjective]"],
-    artist_formats: ["[Noun]", "The [Adjective]", "[Adjective] [Noun]", "[Noun]", "The [Adjective] [Noun]", "[Adjective] Head", "[Adjective]", "[Noun] of [Noun]", "[Noun] of [Adjective]"]
+    artist_formats: ["[Noun]", "The [Adjective]", "[Adjective] [Noun]", "[Noun]", "The [Adjective] [Noun]", "[Adjective] Head", "[Adjective]", "[Noun] of [Noun]"]
   },
   Angry: {
     genres: ["Hardcore", "Trap", "Boom Bap", "Metal", "Grungegaze", "Hip-Hop", "Crunk", "Cloud Rap", "Emo Rap", "Hyperpop", "Mixtape"],
     adjectives: ["Raging", "Violent", "Explosive", "Savage", "Vicious", "Blazing", "First", "Second", "Last", "Thick", "Dry", "Dirty", "Red", "Scarlet", "Bloody", "Large", "Heavy", "Local", "Rare", "Common", "Normal", "Derranged"],
     nouns: ["Fury", "War", "Punch", "Fire", "Blade", "Enemy", "Disease", "Dirt", "Glass", "Knife", "Stab", "Eclipse", "Dog", "Wolf", "Dragon", "Sun", "Gas", "Belt", "Brick", "Tile", "Pile", "Nose", "Fan", "Clown", "Brain", "Needle", "Scar", "Wound", "Control", "Virus", "Chain"],
     title_formats: ["[Adjective] [Noun]", "[Noun]", "No [Noun]", "[Adjective]", "[Adjective] [Noun]", "[Noun] of [Adjective]"],
-    artist_formats: ["[Noun]", "[Adjective]", "[Noun] of [Noun]", "[Noun] of [Adjective]", "[Adjective] [Noun]"]
+    artist_formats: ["[Noun]", "[Adjective]", "[Noun] of [Noun]", "[Adjective] [Noun]"]
   }
 };
 

@@ -15,6 +15,7 @@ import { setupLostDisc, animateLostDisc } from './lostDisc.js';
 import { PostProcessingManager } from './postProcessing.js';
 import { createSpikeBorder } from './border.js'; // Import spike border
 import gameOverScreen from './gameover.js'; // Import game over screen
+import { startScreen } from './start.js';
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -32,12 +33,26 @@ document.body.appendChild(renderer.domElement);
 // Initialize post-processing
 const postProcessing = new PostProcessingManager(renderer, scene, camera);
 
+// Debug mode flag
+let debugMode = false;
+
 // Scale up the canvas while maintaining pixelation
 renderer.domElement.style.width = '100vw';
 renderer.domElement.style.height = '100vh';
+renderer.domElement.style.display = 'block'; // Ensure block display
+renderer.domElement.style.position = 'fixed'; // Fixed positioning to cover the viewport
+renderer.domElement.style.top = '0';
+renderer.domElement.style.left = '0';
+// Ensure it's above other elements but below UI
+renderer.domElement.style.zIndex = '1';
 
 // Set up UI first to get instructions element
 const { instructions } = setupGameUI();
+// Initially hide the instructions until the start screen is complete
+instructions.style.display = 'none';
+
+// Show the start screen
+startScreen.show();
 
 // Set up controls with instructions
 const { controls, moveSpeed, keys, velocity } = setupControls(camera, instructions);
@@ -154,7 +169,13 @@ camera.position.y = 1.7; // Average eye height
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(320, 240); // Keep low resolution
+    
+    // Keep the low resolution for the PS1 effect
+    renderer.setSize(320, 240);
+    
+    // Ensure the canvas is always full screen
+    renderer.domElement.style.width = '100vw';
+    renderer.domElement.style.height = '100vh';
 });
 
 // Create monster instance after scene setup
@@ -164,24 +185,52 @@ playerState.setMonsterReference(monster);
 // Add G key to controls
 keys.g = false;
 keys.h = false; // Add H key for Lost Disc debug
+
 document.addEventListener('keydown', (event) => {
-    if (event.key.toLowerCase() === 'g') {
-        keys.g = true;
-        console.log('🎮 G key pressed - Attempting to spawn monster...');
-        playerState.spawnMonster();
+    const key = event.key.toLowerCase();
+    
+    // Process movement keys
+    switch(key) {
+        case 'w': keys.w = true; break;
+        case 'a': keys.a = true; break;
+        case 's': keys.s = true; break;
+        case 'd': keys.d = true; break;
     }
-    if (event.key.toLowerCase() === 'h') {
-        keys.h = true;
-        console.log('🎮 H key pressed - Debug spawning Lost Disc...');
-        document.dispatchEvent(new CustomEvent('spawnLostDisc'));
+    
+    // Only process debug keys if debugMode is true
+    if (debugMode === true) {
+        if (key === 'g') {
+            keys.g = true;
+            console.log('🎮 G key pressed - Attempting to spawn monster...');
+            playerState.spawnMonster();
+        }
+        else if (key === 'h') {
+            keys.h = true;
+            console.log('🎮 H key pressed - Debug spawning Lost Disc...');
+            document.dispatchEvent(new CustomEvent('spawnLostDisc'));
+        }
     }
 });
+
 document.addEventListener('keyup', (event) => {
-    if (event.key.toLowerCase() === 'g') {
-        keys.g = false;
+    const key = event.key.toLowerCase();
+    
+    // Always reset movement keys
+    switch(key) {
+        case 'w': keys.w = false; break;
+        case 'a': keys.a = false; break;
+        case 's': keys.s = false; break;
+        case 'd': keys.d = false; break;
     }
-    if (event.key.toLowerCase() === 'h') {
-        keys.h = false;
+    
+    // Only reset debug keys if debugMode is active
+    if (debugMode === true) {
+        if (key === 'g') {
+            keys.g = false;
+        }
+        else if (key === 'h') {
+            keys.h = false;
+        }
     }
 });
 
@@ -195,6 +244,18 @@ document.addEventListener('lostDiscEnvironmentChange', () => {
 document.addEventListener('spawnMonster', () => {
     console.log('Monster spawn event received - Spawning monster');
     playerState.spawnMonster();
+});
+
+// Listen for Lost Disc spawn event - only trigger debug functionality if debugMode is true
+document.addEventListener('spawnLostDisc', () => {
+    if (debugMode) {
+        console.log('Lost Disc spawn event received - Debug functionality active');
+        // Trigger the final sequence when in debug mode
+        document.dispatchEvent(new CustomEvent('finalSequenceStart'));
+    } else {
+        console.log('Lost Disc spawn event received but debug mode is off - ignoring');
+        // Do nothing when debug mode is off
+    }
 });
 
 // Listen for game over event

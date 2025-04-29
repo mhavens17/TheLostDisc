@@ -134,7 +134,7 @@ class Monster {
     }
 
     // Calculate if player is looking at monster
-    isPlayerLooking(playerPosition, playerForward, angleThreshold = 30) {
+    isPlayerLooking(playerPosition, playerForward, angleThreshold = 50) {
         if (!this.isActive) return false;
 
         // Convert position and direction to Vector3 if they're not already

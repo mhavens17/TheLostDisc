@@ -90,14 +90,6 @@ export async function setupLostDisc(scene) {
         spawnLostDisc(scene);
     });
 
-    // Add debug key listener for H key
-    document.addEventListener('keydown', (event) => {
-        if (event.key.toLowerCase() === 'h') {
-            console.log('Debug key (H) pressed - Triggering final sequence');
-            document.dispatchEvent(new CustomEvent('finalSequenceStart'));
-        }
-    });
-
     return {
         checkLostDiscCollection,
         animateLostDisc,
